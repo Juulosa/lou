@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz: Estatut de la URV 2025</title>
+    <!-- Tailwind CSS per al disseny -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome per a les icones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #f8fafc;
+        }
+        
+        /* Animacions personalitzades */
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        .slide-up {
+            animation: slideUp 0.5s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Estils transicions de botons */
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .option-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col items-center py-10 px-4">
+
+    <!-- Capçalera -->
+    <header class="w-full max-w-3xl mb-8 text-center fade-in">
+        <div class="inline-flex items-center justify-center p-3 bg-brand-100 rounded-full mb-4 text-brand-600 shadow-sm">
+            <i class="fas fa-university text-2xl"></i>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 mb-2">Quiz de l'Estatut de la URV 2025</h1>
+        <p class="text-lg text-slate-600">Estudi Interactiu Complet - 52 Preguntes</p>
+    </header>
+
+    <!-- Contenidor Principal de l'Aplicació -->
+    <main id="app-container" class="w-full max-w-3xl flex-grow flex flex-col relative">
+        
+        <!-- Barra de progrés -->
+        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6 fade-in shadow-inner overflow-hidden">
+            <div id="progress-bar" class="bg-brand-600 h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between text-sm text-slate-500 font-medium mb-4 fade-in">
+            <span id="question-counter">Pregunta 1 de X</span>
+            <span id="score-counter">Puntuació: 0</span>
+        </div>
+
+        <!-- Targeta de la Pregunta -->
+        <div id="quiz-card" class="bg-white rounded-3xl shadow-xl border border-slate-100 p-6 md:p-10 mb-6 slide-up w-full relative z-10">
+            <h2 id="question-text" class="text-xl md:text-2xl font-semibold text-slate-800 mb-8 leading-snug">
+                <!-- Text de la pregunta s'inserirà aquí -->
+            </h2>
+            
+            <div id="options-container" class="flex flex-col space-y-4">
+                <!-- Opcions s'inseriran aquí via JS -->
+            </div>
+        </div>
+
+        <!-- Targeta d'Explicació (Amagada inicialment) -->
+        <div id="explanation-card" class="bg-slate-50 rounded-3xl shadow-lg border border-slate-200 p-6 md:p-8 mt-4 hidden slide-up relative z-0">
+            <div class="flex items-start gap-4 mb-4">
+                <div id="feedback-icon" class="flex-shrink-0 mt-1">
+                    <!-- Icona correcte/incorrecte -->
+                </div>
+                <div class="w-full">
+                    <h3 id="feedback-title" class="text-lg font-bold mb-2">
+                        <!-- Títol de resposta -->
+                    </h3>
+                    <p id="explanation-text" class="text-slate-700 leading-relaxed mb-6">
+                        <!-- Text de l'explicació -->
+                    </p>
+                    
+                    <!-- Referència del document (Molt important el format exacte) -->
+                    <div class="inline-flex items-center gap-2 px-4 py-3 bg-white rounded-xl border border-slate-200 shadow-sm text-sm font-semibold text-slate-600 w-full break-words">
+                        <i class="fas fa-file-pdf text-red-500 text-lg"></i>
+                        <span id="reference-text" class="leading-tight"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex justify-end">
+                <button id="next-btn" class="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-colors shadow-md flex items-center gap-2">
+                    Següent Pregunta <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Targeta de Resultats (Amagada inicialment) -->
+        <div id="results-card" class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 md:p-12 text-center hidden slide-up">
+            <div class="inline-flex items-center justify-center p-5 bg-emerald-100 rounded-full mb-6 text-emerald-600 shadow-sm">
+                <i class="fas fa-trophy text-5xl"></i>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Resum de l'Estudi</h2>
+            <p class="text-lg text-slate-600 mb-8">Has completat el test interactiu complet sobre l'Estatut de la URV 2025.</p>
+            
+            <div class="flex justify-center gap-12 mb-10 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                <div class="text-center">
+                    <p class="text-sm text-slate-500 uppercase tracking-wide font-semibold mb-2">Encerts</p>
+                    <p id="final-score" class="text-5xl font-bold text-emerald-600">0</p>
+                </div>
+                <div class="w-px bg-slate-200"></div>
+                <div class="text-center">
+                    <p class="text-sm text-slate-500 uppercase tracking-wide font-semibold mb-2">Total</p>
+                    <p id="total-questions" class="text-5xl font-bold text-slate-700">0</p>
+                </div>
+            </div>
+            
+            <button id="restart-btn" class="px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors shadow-lg flex items-center justify-center gap-3 mx-auto w-full md:w-auto text-lg">
+                <i class="fas fa-redo-alt"></i> Tornar a començar
+            </button>
+        </div>
+
+    </main>
+
+    <footer class="mt-12 mb-6 text-center text-slate-400 text-sm">
+        <p>Dissenyat per a l'estudi de l'Estatut de la URV 2025</p>
+    </footer>
+
+    <script>
+        // L'array complet de 52 preguntes exactament tal i com ho has demanat.
+        const questionsData = [
+            { q: "Quina norma motiva el nou Estatut?", o: ["Llei orgànica 2/2023, de 22 de març", "Llei 1/2003", "Llei 36/1991", "Llei orgànica 6/2001"], a: 0, exp: "S'ha aprovat el nou Estatut per adaptar-lo al nou marc jurídic vigent establert per la Llei orgànica 2/2023, de 22 de març.", p: 1 },
+            { q: "De qui rep el nom la Universitat?", o: ["Antoni Rovira i Virgili", "Pompeu Fabra", "Joan Lluís Vives", "Cardenal Cervantes"], a: 0, exp: "La Universitat rep el nom del tarragoní Antoni Rovira i Virgili, escriptor, historiador i polític.", p: 2 },
+            { q: "Quin d'aquests és un principi rector (Art 3)?", o: ["Sostenibilitat", "Rendibilitat", "Tradició", "Exclusivitat"], a: 0, exp: "Es regeix pels principis de llibertat, democràcia, justícia, igualtat, no-discriminació, solidaritat, sostenibilitat i bon govern.", p: 3 },
+            { q: "On té la seu principal la URV?", o: ["A la ciutat de Tarragona", "Reus", "Tortosa", "Vila-seca"], a: 0, exp: "La Universitat Rovira i Virgili té la seu a la ciutat de Tarragona.", p: 4 },
+            { q: "Quina és la llengua pròpia de la URV?", o: ["El català", "El castellà", "L'anglès", "L'aranès"], a: 0, exp: "El català és la llengua pròpia de la Universitat i, per tant, la d'ús normal en les seves activitats.", p: 5 },
+            { q: "Quina és la funció de la facultat o escola?", o: ["Organitzar ensenyaments i processos acadèmics oficials", "Administrar pressupostos externs", "Nomenar el rector", "Aprovar estatuts"], a: 0, exp: "És el centre encarregat d'organitzar els ensenyaments i els processos acadèmics, administratius i de gestió oficials.", p: 6 },
+            { q: "Quina és l'estructura bàsica per organitzar l'activitat del personal acadèmic?", o: ["El departament", "El rectorat", "La facultat", "L'institut"], a: 0, exp: "El departament és l'estructura bàsica per organitzar l'activitat del personal acadèmic i donar suport a les seves iniciatives docents.", p: 7 },
+            { q: "A què es dedica un institut universitari de recerca propi?", o: ["A la investigació multidisciplinària o interdisciplinària", "A l'acció solidària", "Al finançament", "A la transferència esportiva"], a: 0, exp: "És una estructura dedicada a la investigació de caràcter multidisciplinari o interdisciplinari.", p: 8 },
+            { q: "Quina és la missió de l'Institut de Ciències de l'Educació?", o: ["Impulsar la innovació i recerca educatives", "Gestionar recursos humans", "Elaborar pressupostos", "Nomenar PAS"], a: 0, exp: "La seva missió és impulsar la innovació educativa, la formació pedagògica i la recerca educativa.", p: 9 },
+            { q: "Quina entitat es considera un mitjà propi de la Universitat a l'efecte de contractes?", o: ["La Fundació URV", "El Consell Social", "El Claustre", "L'Escola de Doctorat"], a: 0, exp: "La Fundació URV es considera un mitjà propi de la Universitat a l'efecte de la Llei de contractes del sector públic.", p: 10 },
+            { q: "Com han d'estar composats els òrgans de govern quant a gènere?", o: ["Amb presència equilibrada de dones i homes", "Només dones", "Només homes", "No hi ha regulació"], a: 0, exp: "Han de tenir una presència equilibrada de dones i homes, segons la legislació vigent.", p: 11 },
+            { q: "Quan s'ha de convocar ordinàriament el Claustre?", o: ["Almenys dues vegades l'any en període lectiu", "Cada mes", "Cada cinc anys", "Un cop l'any"], a: 0, exp: "El rector o rectora ha de convocar el Claustre en sessió ordinària almenys dues vegades l'any en període lectiu.", p: 12 },
+            { q: "Quants representants d'estudiants formen part del Claustre?", o: ["52 estudiants", "20", "100", "24"], a: 0, exp: "L'apartat g) detalla que hi ha cinquanta-dos estudiants (quaranta-nou de grau/màster i tres de doctorat).", p: 13 },
+            { q: "Quina competència té el Claustre respecte al síndic de greuges?", o: ["Elegir-lo i, si escau, revocar-lo", "Contractar-lo com PAS", "Fixar-li el sou", "Designar-ne suplents"], a: 0, exp: "Entre les competències del Claustre hi ha elegir i, si escau, revocar el síndic o síndica de greuges.", p: 14 },
+            { q: "Amb quina periodicitat s'ha de reunir el Consell de Govern?", o: ["Almenys una vegada al trimestre", "Cada dos anys", "Mensualment", "Setmanalment"], a: 0, exp: "L'article 35 estableix que el Consell de Govern s'ha de reunir almenys una vegada al trimestre.", p: 15 },
+            { q: "A quin òrgan proposa el pressupost anual el Consell de Govern?", o: ["Al Consell Social", "Al Claustre", "Al Rectorat", "A la Generalitat"], a: 0, exp: "El Consell de Govern té la competència de proposar al Consell Social el pressupost anual per la seva aprovació.", p: 16 },
+            { q: "Qui aprova el nomenament de doctors honoris causa?", o: ["El Consell de Govern", "El Consell Social", "El Claustre", "El departament"], a: 0, exp: "Correspon al Consell de Govern aprovar el nomenament de doctors honoris causa.", p: 17 },
+            { q: "Quina d'aquestes és competència del consell de facultat/escola?", o: ["Aprovar i tancar el seu pressupost", "Escollir el rector", "Aprovar els pressupostos globals", "Tancar els departaments"], a: 0, exp: "Són competències del consell de facultat o escola aprovar i tancar el pressupost de la facultat o l'escola.", p: 18 },
+            { q: "Quina representació mínima tenen els estudiants al consell de departament?", o: ["El 25% del total de membres", "10%", "50%", "5%"], a: 0, exp: "Els estudiants tenen una representació que no pot ser inferior al 25% del total de membres del consell.", p: 19 },
+            { q: "Qui elegeix el director o directora de departament?", o: ["El consell de departament", "El Consell de Govern", "El Rector/a", "El degà/na"], a: 0, exp: "Són competències del consell de departament elegir el director o directora del departament.", p: 20 },
+            { q: "Quin coeficient té el vot dels estudiants per elegir rector/a?", o: ["0,20", "0,51", "0,12", "0,17"], a: 0, exp: "El coeficient del vot per al col·lectiu d'estudiants és 0,20.", p: 21 },
+            { q: "Qui presideix l'Equip de Govern?", o: ["El rector o rectora", "El gerent", "El vicerector", "El síndic"], a: 0, exp: "L'Equip de Govern està format pel rector o rectora, que el presideix.", p: 22 },
+            { q: "Qui gestiona els recursos econòmics i serveis administratius?", o: ["El gerent o gerenta", "El degà", "El claustre", "L'estudiantat"], a: 0, exp: "El gerent o gerenta gestiona els serveis administratius i els recursos materials i econòmics de la Universitat.", p: 23 },
+            { q: "En cas d'absència, qui substitueix el degà/na si no n'ha determinat cap?", o: ["El vicedegà/na de més edat", "El gerent", "El vicerector de zona", "El secretari"], a: 0, exp: "Si no ha determinat el substitut, cal que el substitueixi el de més edat.", p: 24 },
+            { q: "Quina és la durada del mandat del director/a de departament?", o: ["Sis anys, improrrogable", "Quatre anys", "Dos anys", "Vuit anys"], a: 0, exp: "La durada del mandat és de sis anys; és improrrogable i no renovable.", p: 25 },
+            { q: "Com es selecciona el director/a d'institut universitari de recerca?", o: ["Mitjançant convocatòria pública", "Sorteig", "Nomenament directe del claustre", "Votació estudiantil"], a: 0, exp: "El director/a és seleccionat per una comissió mitjançant una convocatòria pública.", p: 26 },
+            { q: "Es pot delegar el vot a les eleccions als òrgans de govern?", o: ["No, el sufragi és personal i intransferible", "Sí a qualsevol estudiant", "Sí amb autorització", "Sí als docents"], a: 0, exp: "El sufragi és un dret personal. No es pot delegar el vot ni l'exercici de representacions.", p: 27 },
+            { q: "Quina eina permet remoure un càrrec unipersonal en òrgans col·legiats?", o: ["La moció de censura", "El vot de càstig", "La dimissió forçada", "L'expulsió"], a: 0, exp: "Els òrgans col·legiats poden remoure els càrrecs unipersonals mitjançant l'aprovació d'una moció de censura.", p: 28 },
+            { q: "Quin òrgan vetlla per l'aplicació del Codi ètic a la URV?", o: ["La Comissió d'Ètica", "La Sindicatura de Greuges", "El Claustre", "El Consell Social"], a: 0, exp: "Correspon a la Comissió d'Ètica vetllar perquè s'apliquin els principis ètics en totes les activitats.", p: 29 },
+            { q: "Tenen caràcter vinculant les recomanacions de la Sindicatura de Greuges?", o: ["No, no tenen caràcter vinculant", "Sí totalment", "Només per a estudiants", "Només en temes econòmics"], a: 0, exp: "Les recomanacions de la Sindicatura de Greuges no tenen caràcter vinculant.", p: 30 },
+            { q: "Com s'estructuren els estudis universitaris conduents a títols oficials?", o: ["Grau, màster universitari i doctorat", "Llicenciatura i diplomatura", "Postgrau únic", "Cursos de curta durada"], a: 0, exp: "S'estructuren en grau, màster universitari, doctorat i altres nivells que estableixi la legislació.", p: 31 },
+            { q: "Qui aprova la denominació i requisits dels títols propis?", o: ["El Consell de Govern", "El departament", "La facultat", "L'Estat"], a: 0, exp: "El Consell de Govern aprova la denominació i els requisits dels títols propis.", p: 32 },
+            { q: "Quina activitat de recerca està prohibida?", o: ["Les recerques amb finalitats armamentistes", "Les recerques mèdiques", "Les de ciències socials", "Les lingüístiques"], a: 0, exp: "El document especifica explícitament que no es pot dur a terme cap activitat de recerca amb finalitats armamentistes.", p: 33 },
+            { q: "A qui correspon l'autoria de les obres creades pel PDI?", o: ["Al personal creador", "A la Generalitat", "A la Universitat sempre", "Als estudiants"], a: 0, exp: "Correspon al personal de la Universitat l'autoria de les obres creades a conseqüència de les seves funcions.", p: 34 },
+            { q: "Quin és un deure explícit de la comunitat universitària?", o: ["Respectar i conservar el patrimoni de la Universitat", "Finançar obres", "Aprovar normes estatals", "Ignorar les instal·lacions"], a: 0, exp: "Entre els deures de la comunitat hi ha respectar i conservar el patrimoni i fer-ne un ús correcte.", p: 35 },
+            { q: "Quan tenen dret els estudiants a conèixer el pla d'estudis?", o: ["Abans de matricular-se", "Després dels exàmens", "En finalitzar el curs", "A l'estiu"], a: 0, exp: "Tenen dret a rebre la informació acadèmica sobre plans d'estudi abans de matricular-s'hi.", p: 36 },
+            { q: "Quin és l'òrgan de consulta i representació de l'estudiantat?", o: ["El Consell d'Estudiants de la Universitat", "L'Assemblea del PAS", "El Claustre de professors", "La Comissió d'Ètica"], a: 0, exp: "El Consell d'Estudiants de la Universitat és l'òrgan de consulta, deliberació, representació i coordinació.", p: 37 },
+            { q: "Quin és el límit de les llibertats de càtedra i recerca?", o: ["La Constitució, les lleis, l'Estatut i el Codi ètic", "L'opinió del gerent", "Les votacions del departament", "El finançament europeu"], a: 0, exp: "S'exerceixen sense altres límits que els de la Constitució, lleis, estatut i Codi ètic.", p: 38 },
+            { q: "On ha d'estar adscrit el personal investigador predoctoral?", o: ["A un departament", "Al Rectorat directament", "A una empresa privada", "A l'Ajuntament"], a: 0, exp: "El personal investigador ha d'estar adscrit a un departament (Art. 119.4).", p: 39 },
+            { q: "Quin és el règim de dedicació preferent del PDI?", o: ["A temps complet", "A temps parcial", "Autònom", "Temporal d'estiu"], a: 0, exp: "Els membres del personal docent i investigador exerceixen les funcions preferentment en règim a temps complet.", p: 40 },
+            { q: "Qui decideix sobre les situacions administratives del PAS?", o: ["El rector o rectora", "El síndic", "El coordinador de grau", "El Consell d'Estudiants"], a: 0, exp: "Correspon al rector o rectora decidir sobre les situacions administratives del PAS.", p: 41 },
+            { q: "Quin percentatge màxim pot representar el personal eventual del PAS?", o: ["El 5% del PAS", "50%", "25%", "0%"], a: 0, exp: "El personal eventual no pot representar més del 5% del personal tècnic, de gestió i d'administració i serveis.", p: 42 },
+            { q: "D'on provenen les transferències per despeses corrents i de capital?", o: ["De la Generalitat de Catalunya", "Dels ajuntaments", "Del Ministeri", "De donacions privades"], a: 0, exp: "Són fixades anualment per la Generalitat de Catalunya dins d'un marc pressupostari.", p: 43 },
+            { q: "Què passa si el pressupost no s'aprova abans de l'1 de gener?", o: ["Es prorroga automàticament el de l'any anterior", "Es tanca la universitat", "S'adopta el de la Generalitat", "S'elimina el pressupost"], a: 0, exp: "S'entén automàticament prorrogat el pressupost de l'any anterior fins que s'aprovi el nou.", p: 44 },
+            { q: "Com es manté el caràcter pluriennal de la programació?", o: ["S'actualitza cada any afegint una nova anualitat", "Es vota cada deu anys", "Només es revisa si cal", "Es manté inalterable"], a: 0, exp: "S'ha de revisar i actualitzar cada any i afegir una nova anualitat.", p: 45 },
+            { q: "Quin control exigeixen els comptes anuals?", o: ["Una auditoria externa", "Control estudiantil", "Aprovació sindical", "Intervenció municipal"], a: 0, exp: "Els comptes anuals s'han de sotmetre a una auditoria externa d'acord amb la legislació vigent.", p: 46 },
+            { q: "Qui aprova la baixa de béns de l'inventari?", o: ["El Consell Social, a proposta del Consell de Govern", "Només el gerent", "El cap de departament", "L'alcalde"], a: 0, exp: "El Consell Social ha d'aprovar, a proposta del Consell de Govern, la baixa de l'inventari.", p: 47 },
+            { q: "Quin any es van instituir els primers estudis universitaris a Tarragona?", o: ["1572", "1991", "2023", "1717"], a: 0, exp: "Instituïts pel cardenal Gaspar Cervantes de Gaeta l'any 1572.", p: 48 },
+            { q: "A partir de l'obra de quin autor es va crear l'emblema de la URV?", o: ["Antoni Tàpies", "Salvador Dalí", "Joan Miró", "Pablo Picasso"], a: 0, exp: "L'emblema de la URV és una adaptació gràfica de l'obra original creada per Antoni Tàpies.", p: 49 },
+            { q: "Quina facultat apareix al llistat de l'estatut?", o: ["Facultat d'Enologia", "Facultat de Veterinària", "Facultat de Belles Arts", "Facultat d'Astronomia"], a: 0, exp: "Entre la llista de facultats fundacionals apareix explícitament la Facultat d'Enologia.", p: 50 },
+            { q: "Quina d'aquestes categories és PDI no permanent?", o: ["Professorat substitut", "Catedràtic d'universitat", "Professor titular", "PDI funcionari"], a: 0, exp: "El professorat substitut és una de les categories del personal docent i investigador no permanent.", p: 51 },
+            { q: "Quan entra en vigor aquest Estatut?", o: ["L'endemà de la seva publicació al DOGC", "Un any després", "Immediatament al claustre", "En començar el curs"], a: 0, exp: "L'Estatut entra en vigor l'endemà de la seva publicació al Diari Oficial de la Generalitat de Catalunya.", p: 52 }
+        ];
+
+        // Variables d'estat
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let hasAnswered = false;
+        let currentOptionsMapped = [];
+
+        // Elements del DOM
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const explanationCard = document.getElementById('explanation-card');
+        const feedbackIcon = document.getElementById('feedback-icon');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const explanationText = document.getElementById('explanation-text');
+        const referenceText = document.getElementById('reference-text');
+        const nextBtn = document.getElementById('next-btn');
+        const quizCard = document.getElementById('quiz-card');
+        const resultsCard = document.getElementById('results-card');
+        const progressBar = document.getElementById('progress-bar');
+        const questionCounter = document.getElementById('question-counter');
+        const scoreCounter = document.getElementById('score-counter');
+        const restartBtn = document.getElementById('restart-btn');
+        const finalScore = document.getElementById('final-score');
+        const totalQuestions = document.getElementById('total-questions');
+
+        // Inicialització
+        function initApp() {
+            currentQuestionIndex = 0;
+            score = 0;
+            resultsCard.classList.add('hidden');
+            quizCard.classList.remove('hidden');
+            updateUI();
+            loadQuestion();
+        }
+
+        // Funció per barrejar un array (Fisher-Yates shuffle)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Carregar pregunta actual
+        function loadQuestion() {
+            hasAnswered = false;
+            explanationCard.classList.add('hidden');
+            explanationCard.classList.remove('slide-up');
+            
+            const q = questionsData[currentQuestionIndex];
+            questionText.textContent = q.q;
+            
+            // Netejar opcions prèvies
+            optionsContainer.innerHTML = '';
+            
+            // Mapar les opcions per guardar quina era la correcta (índex 'a') abans de barrejar
+            currentOptionsMapped = q.o.map((optText, index) => {
+                return {
+                    text: optText,
+                    isCorrect: index === q.a
+                };
+            });
+            
+            // Barrejar les opcions perquè la correcta no estigui sempre al mateix lloc
+            currentOptionsMapped = shuffleArray(currentOptionsMapped);
+            
+            // Generar botons d'opció a la interfície
+            currentOptionsMapped.forEach((optObj, renderedIndex) => {
+                const button = document.createElement('button');
+                button.className = "option-btn w-full text-left p-4 md:p-5 rounded-xl border-2 border-slate-200 bg-white font-medium text-slate-700 hover:border-brand-300 hover:bg-brand-50 flex items-center";
+                button.innerHTML = `
+                    <div class="w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center mr-4 flex-shrink-0 option-circle transition-colors">
+                        <span class="text-sm option-letter"></span>
+                    </div>
+                    <span>${optObj.text}</span>
+                `;
+                button.onclick = () => selectOption(renderedIndex, button);
+                optionsContainer.appendChild(button);
+            });
+
+            updateUI();
+        }
+
+        // Gestionar selecció d'una resposta
+        function selectOption(selectedIndex, selectedBtn) {
+            if (hasAnswered) return; // Evitar respostes múltiples
+            hasAnswered = true;
+
+            const q = questionsData[currentQuestionIndex];
+            const isCorrect = currentOptionsMapped[selectedIndex].isCorrect;
+            const buttons = optionsContainer.querySelectorAll('button');
+
+            if (isCorrect) score++;
+
+            // Estilitzar botons basant-se en la resposta
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                btn.classList.remove('hover:border-brand-300', 'hover:bg-brand-50', 'cursor-pointer');
+                
+                const circle = btn.querySelector('.option-circle');
+                const btnIsCorrectOpt = currentOptionsMapped[index].isCorrect;
+                
+                if (btnIsCorrectOpt) {
+                    // Estil per a la resposta correcta
+                    btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
+                    circle.classList.remove('border-slate-300');
+                    circle.classList.add('border-emerald-500', 'bg-emerald-500', 'text-white');
+                    circle.innerHTML = '<i class="fas fa-check"></i>';
+                } else if (index === selectedIndex && !isCorrect) {
+                    // Estil per a la resposta incorrecta seleccionada
+                    btn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-800');
+                    circle.classList.remove('border-slate-300');
+                    circle.classList.add('border-rose-500', 'bg-rose-500', 'text-white');
+                    circle.innerHTML = '<i class="fas fa-times"></i>';
+                } else {
+                    // Desactivar les restants
+                    btn.classList.add('opacity-50', 'bg-slate-50');
+                }
+            });
+
+            showExplanation(isCorrect, q);
+            updateUI();
+        }
+
+        // Mostrar el panell d'explicació inferior
+        function showExplanation(isCorrect, questionData) {
+            // Configurar icona i títol
+            if (isCorrect) {
+                feedbackIcon.innerHTML = '<div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600"><i class="fas fa-check text-xl"></i></div>';
+                feedbackTitle.textContent = "¡Correcte!";
+                feedbackTitle.className = "text-xl font-bold text-emerald-700 mb-2";
+            } else {
+                feedbackIcon.innerHTML = '<div class="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-600"><i class="fas fa-times text-xl"></i></div>';
+                feedbackTitle.textContent = "Incorrecte";
+                feedbackTitle.className = "text-xl font-bold text-rose-700 mb-2";
+            }
+
+            // Inserir text i l'exacta referència requerida
+            explanationText.innerHTML = `<strong>Explicació:</strong> ${questionData.exp}`;
+            referenceText.textContent = `Document de referència: DOGC9526_Estatut_URV_2025 (1).pdf - Pàgina ${questionData.p}`;
+
+            // Mostrar el panell amb animació
+            explanationCard.classList.remove('hidden');
+            // Hack per re-activar l'animació CSS
+            void explanationCard.offsetWidth; 
+            explanationCard.classList.add('slide-up');
+            
+            // Fer scroll automàtic si es necessari a dispositius petits
+            setTimeout(() => {
+                explanationCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        // Gestionar pas a la següent pregunta o finalització
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questionsData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // Mostrar pantalla final
+        function showResults() {
+            quizCard.classList.add('hidden');
+            explanationCard.classList.add('hidden');
+            resultsCard.classList.remove('hidden');
+            
+            finalScore.textContent = score;
+            totalQuestions.textContent = questionsData.length;
+            
+            // Animar el bar de progrés al 100%
+            progressBar.style.width = '100%';
+            
+            // Reposicionar al principi
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Actualitzar els indicadors visuals de UI (marcador, barra, etc.)
+        function updateUI() {
+            questionCounter.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questionsData.length}`;
+            scoreCounter.textContent = `Puntuació: ${score}`;
+            
+            const progressPercentage = ((currentQuestionIndex) / questionsData.length) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+        }
+
+        // Event Listeners
+        nextBtn.addEventListener('click', nextQuestion);
+        restartBtn.addEventListener('click', initApp);
+
+        // Iniciar aplicació al carregar
+        document.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
+</body>
+</html>
